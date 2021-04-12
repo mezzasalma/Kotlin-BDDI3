@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Voisins</string>
+    <string name="confirm_delete">Confirmer la suppression</string>
+    <string name="message_delete">Êtes-vous sûr de vouloir supprimer ?</string>
+    <string name="ok">Oui</string>
+    <string name="cancel">Annuler</string>
+    <string name="wow">Woooow !!</string>
+    <string name="hint_address">Adresse e-mail</string>
+    <string name="save">Enregistrer</string>
+    <string name="hint_image">Url de l\'image</string>
+    <string name="hint_name">Nom</string>
+    <string name="hint_tel">Téléphone</string>
+    <string name="hint_link">Lien du site web</string>
+    <string name="hint_about">A propos</string>
+    <string name="avatar_hint">Avatar</string>
+    <string name="error">Le champs est incorrect</string>
+    <string name="list_neighbors_title">Liste de voisins</string>
+    <string name="add_neighbor_title">Ajouter un voisin</string>
+</resources>

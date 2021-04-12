@@ -1,0 +1,4 @@
+include ':Neighbors'
+include ':Calculator'
+include ':FirstApp'
+rootProject.name = "Kotlin"
