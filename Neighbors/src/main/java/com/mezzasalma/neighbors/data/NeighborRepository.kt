@@ -15,6 +15,7 @@ class NeighborRepository {
     fun getNeighbors(): LiveData<List<Neighbor>> = apiService.neighbors
     fun deleteNeighbor(neighbor: Neighbor) = apiService.deleteNeighbor(neighbor)
     fun updateFavoriteStatus(neighbor: Neighbor) = apiService.updateFavoriteStatus(neighbor)
+    fun createNeighbor(neighbor: Neighbor) = apiService.createneighbor(neighbor)
 
     companion object {
         private var instance: NeighborRepository? = null
