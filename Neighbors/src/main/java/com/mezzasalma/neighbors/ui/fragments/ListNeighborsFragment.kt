@@ -1,6 +1,7 @@
-package com.mezzasalma.neighbors.fragments
+package com.mezzasalma.neighbors.ui.fragments
 
 import android.app.AlertDialog
+import android.app.Application
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
@@ -8,7 +9,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -19,8 +19,11 @@ import com.mezzasalma.neighbors.NavigationListener
 import com.mezzasalma.neighbors.R
 import com.mezzasalma.neighbors.adapters.ListNeighborHandler
 import com.mezzasalma.neighbors.adapters.ListNeighborsAdapter
-import com.mezzasalma.neighbors.data.NeighborRepository
+import com.mezzasalma.neighbors.dal.room.NeighborDataBase
 import com.mezzasalma.neighbors.models.Neighbor
+import com.mezzasalma.neighbors.repositories.NeighborRepository
+import com.mezzasalma.neighbors.repositories.service.DUMMY_NeighborS
+import java.util.concurrent.Executors
 
 /**
  * Cette classe set un fragment.
@@ -53,7 +56,7 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        refreshNeighbors()
+        setData()
 
         val addNeighbor: FloatingActionButton = view.findViewById(R.id.add_neighbor_button)
         addNeighbor.setOnClickListener {
@@ -62,6 +65,8 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
     }
 
     override fun onDeleteNeighbor(neighbor: Neighbor) {
+        val application: Application = activity?.application ?: return
+
         val alertDialog: AlertDialog? = activity?.let {
             val builder = AlertDialog.Builder(it)
             builder.apply {
@@ -70,8 +75,8 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
                 setPositiveButton(
                     R.string.ok,
                     DialogInterface.OnClickListener() { _: DialogInterface, _: Int ->
-                        NeighborRepository.getInstance().deleteNeighbor(neighbor)
-                        refreshNeighbors()
+                        NeighborRepository.getInstance(application).deleteNeighbor(neighbor)
+                        setData()
                         Toast.makeText(it, R.string.wow, Toast.LENGTH_SHORT).show()
                     }
                 )
@@ -83,8 +88,10 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
     }
 
     override fun onUpdateFavoriteStatus(neighbor: Neighbor) {
-        NeighborRepository.getInstance().updateFavoriteStatus(neighbor)
-        refreshNeighbors()
+        val application: Application = activity?.application ?: return
+
+        NeighborRepository.getInstance(application).updateFavoriteStatus(neighbor)
+        setData()
     }
 
     override fun openLink(neighbor: Neighbor) {
@@ -93,8 +100,11 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
         startActivity(i)
     }
 
-    private fun refreshNeighbors() {
-        NeighborRepository.getInstance().getNeighbors().observe(viewLifecycleOwner) {
+    private fun setData() {
+        // Récupérer l'instance de l'application, si elle est null arrêter l'exécution de la méthode
+        val application: Application = activity?.application ?: return
+
+        NeighborRepository.getInstance(application).getNeighbors().observe(viewLifecycleOwner) {
             val adapter = ListNeighborsAdapter(it, this)
             recyclerView.adapter = adapter
         }

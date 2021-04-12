@@ -1,4 +1,4 @@
-package com.mezzasalma.neighbors.data.service
+package com.mezzasalma.neighbors.repositories.service
 
 import com.mezzasalma.neighbors.models.Neighbor
 

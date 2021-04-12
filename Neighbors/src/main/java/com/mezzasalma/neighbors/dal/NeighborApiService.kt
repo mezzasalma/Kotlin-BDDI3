@@ -1,4 +1,4 @@
-package com.mezzasalma.neighbors.data.service
+package com.mezzasalma.neighbors.dal
 
 import androidx.lifecycle.LiveData
 import com.mezzasalma.neighbors.models.Neighbor

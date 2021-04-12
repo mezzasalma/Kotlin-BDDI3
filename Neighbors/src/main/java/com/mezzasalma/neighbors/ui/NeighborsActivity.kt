@@ -1,10 +1,12 @@
-package com.mezzasalma.neighbors
+package com.mezzasalma.neighbors.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import com.mezzasalma.neighbors.fragments.ListNeighborsFragment
+import com.mezzasalma.neighbors.NavigationListener
+import com.mezzasalma.neighbors.R
+import com.mezzasalma.neighbors.ui.fragments.ListNeighborsFragment
 
 class NeighborsActivity : AppCompatActivity(), NavigationListener {
     private lateinit var toolbar: Toolbar

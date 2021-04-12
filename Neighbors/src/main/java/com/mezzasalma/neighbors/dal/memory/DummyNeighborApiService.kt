@@ -1,8 +1,10 @@
-package com.mezzasalma.neighbors.data.service
+package com.mezzasalma.neighbors.dal.memory
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.mezzasalma.neighbors.dal.NeighborApiService
 import com.mezzasalma.neighbors.models.Neighbor
+import com.mezzasalma.neighbors.repositories.service.DUMMY_NeighborS
 
 class DummyNeighborApiService : NeighborApiService {
     private val _neighbors = MutableLiveData<List<Neighbor>>()
