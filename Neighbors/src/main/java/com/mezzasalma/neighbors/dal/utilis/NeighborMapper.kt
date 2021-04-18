@@ -15,7 +15,7 @@ fun NeighborEntity.toNeighbor() = Neighbor(
 )
 
 fun Neighbor.toEntity() = NeighborEntity(
-    id = id.toLong(),
+    id = id,
     name = name,
     avatarUrl = avatarUrl,
     address = address,

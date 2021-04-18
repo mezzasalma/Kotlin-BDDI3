@@ -3,20 +3,32 @@ package com.mezzasalma.neighbors.repositories
 import android.app.Application
 import androidx.lifecycle.LiveData
 import com.mezzasalma.neighbors.dal.NeighborApiService
+import com.mezzasalma.neighbors.dal.memory.DummyNeighborApiService
 import com.mezzasalma.neighbors.dal.room.RoomNeighborApiService
 import com.mezzasalma.neighbors.models.Neighbor
 
 class NeighborRepository private constructor(application: Application) {
-    private val apiService: NeighborApiService
+    private lateinit var apiService: NeighborApiService
+    var persistence: Boolean
 
     init {
-        apiService = RoomNeighborApiService(application)
+        persistence = true
+        switchPersistence(application, persistence)
     }
 
     // Méthode qui retourne la liste des voisins
     fun getNeighbors(): LiveData<List<Neighbor>> = apiService.neighbors
     fun deleteNeighbor(neighbor: Neighbor) = apiService.deleteNeighbor(neighbor)
     fun updateFavoriteStatus(neighbor: Neighbor) = apiService.updateFavoriteStatus(neighbor)
+    fun createNeighbor(neighbor: Neighbor) = apiService.createneighbor(neighbor)
+
+    fun switchPersistence(application: Application, persistence: Boolean) {
+        apiService = if (persistence) {
+            RoomNeighborApiService(application) // Persistent
+        } else {
+            DummyNeighborApiService() // Non persistent
+        }
+    }
 
     companion object {
         private var instance: NeighborRepository? = null

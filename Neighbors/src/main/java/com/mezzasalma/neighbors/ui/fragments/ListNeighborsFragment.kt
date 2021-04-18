@@ -1,7 +1,6 @@
 package com.mezzasalma.neighbors.ui.fragments
 
 import android.app.AlertDialog
-import android.app.Application
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
@@ -11,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,18 +19,23 @@ import com.mezzasalma.neighbors.NavigationListener
 import com.mezzasalma.neighbors.R
 import com.mezzasalma.neighbors.adapters.ListNeighborHandler
 import com.mezzasalma.neighbors.adapters.ListNeighborsAdapter
-import com.mezzasalma.neighbors.dal.room.NeighborDataBase
+import com.mezzasalma.neighbors.di.DI
+import com.mezzasalma.neighbors.fragments.AddNeighborFragment
 import com.mezzasalma.neighbors.models.Neighbor
-import com.mezzasalma.neighbors.repositories.NeighborRepository
-import com.mezzasalma.neighbors.repositories.service.DUMMY_NeighborS
-import java.util.concurrent.Executors
+import com.mezzasalma.neighbors.viewmodels.NeighborViewModel
 
 /**
  * Cette classe set un fragment.
- * Cette classe est aussi un ListNeighborHandler, elle impélmente l'interface
+ * Cette classe est aussi un ListNeighborHandler, elle implémente l'interface
  */
 class ListNeighborsFragment : Fragment(), ListNeighborHandler {
     private lateinit var recyclerView: RecyclerView
+    private lateinit var viewModel: NeighborViewModel
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this).get(NeighborViewModel::class.java)
+    }
 
     /**
      * Fonction permettant de définir une vue à attacher à un fragment
@@ -65,8 +70,6 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
     }
 
     override fun onDeleteNeighbor(neighbor: Neighbor) {
-        val application: Application = activity?.application ?: return
-
         val alertDialog: AlertDialog? = activity?.let {
             val builder = AlertDialog.Builder(it)
             builder.apply {
@@ -75,7 +78,7 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
                 setPositiveButton(
                     R.string.ok,
                     DialogInterface.OnClickListener() { _: DialogInterface, _: Int ->
-                        NeighborRepository.getInstance(application).deleteNeighbor(neighbor)
+                        DI.repository.deleteNeighbor(neighbor)
                         setData()
                         Toast.makeText(it, R.string.wow, Toast.LENGTH_SHORT).show()
                     }
@@ -88,9 +91,7 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
     }
 
     override fun onUpdateFavoriteStatus(neighbor: Neighbor) {
-        val application: Application = activity?.application ?: return
-
-        NeighborRepository.getInstance(application).updateFavoriteStatus(neighbor)
+        DI.repository.updateFavoriteStatus(neighbor)
         setData()
     }
 
@@ -101,10 +102,7 @@ class ListNeighborsFragment : Fragment(), ListNeighborHandler {
     }
 
     private fun setData() {
-        // Récupérer l'instance de l'application, si elle est null arrêter l'exécution de la méthode
-        val application: Application = activity?.application ?: return
-
-        NeighborRepository.getInstance(application).getNeighbors().observe(viewLifecycleOwner) {
+        viewModel.neighbors.observe(viewLifecycleOwner) {
             val adapter = ListNeighborsAdapter(it, this)
             recyclerView.adapter = adapter
         }

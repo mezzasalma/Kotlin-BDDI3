@@ -16,4 +16,5 @@
     <string name="error">Value is incorrect</string>
     <string name="list_neighbors_title">List of neighbors</string>
     <string name="add_neighbor_title">Add new neighbor</string>
+    <string name="persistence">Persistent</string>
 </resources>

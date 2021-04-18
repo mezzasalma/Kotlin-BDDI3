@@ -1,9 +1,7 @@
 package com.mezzasalma.neighbors.dal.room.daos
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.* // ktlint-disable no-wildcard-imports
 import com.mezzasalma.neighbors.dal.room.entities.NeighborEntity
 
 @Dao
@@ -13,4 +11,10 @@ interface NeighborDao {
 
     @Insert
     fun add(vararg neighborEntity: NeighborEntity)
+
+    @Delete
+    fun delete(vararg neighborEntity: NeighborEntity)
+
+    @Update
+    fun update(vararg neighborEntity: NeighborEntity)
 }

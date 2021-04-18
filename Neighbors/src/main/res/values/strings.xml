@@ -16,4 +16,5 @@
     <string name="error">Le champs est incorrect</string>
     <string name="list_neighbors_title">Liste de voisins</string>
     <string name="add_neighbor_title">Ajouter un voisin</string>
+    <string name="persistence">Persistent</string>
 </resources>

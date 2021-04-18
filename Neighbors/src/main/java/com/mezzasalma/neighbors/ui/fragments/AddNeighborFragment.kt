@@ -1,12 +1,12 @@
-package com.mezzasalma.neighbors.ui.fragments
+package com.mezzasalma.neighbors.fragments
 
+import android.app.Application
 import android.os.Bundle
-import android.text.Editable
+import android.util.Patterns.EMAIL_ADDRESS
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.URLUtil
-import android.widget.Toast
 import androidx.core.widget.doAfterTextChanged
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -14,100 +14,127 @@ import com.google.android.material.textfield.TextInputEditText
 import com.mezzasalma.neighbors.NavigationListener
 import com.mezzasalma.neighbors.R
 import com.mezzasalma.neighbors.databinding.AddNeighborBinding
+import com.mezzasalma.neighbors.di.DI
 import com.mezzasalma.neighbors.models.Neighbor
+import com.mezzasalma.neighbors.repositories.NeighborRepository
+import com.mezzasalma.neighbors.ui.fragments.ListNeighborsFragment
 
 class AddNeighborFragment : Fragment() {
-    lateinit var binding: AddNeighborBinding //  par rapport au nom du layout
+    lateinit var binding: AddNeighborBinding
     private lateinit var formView: View
     private lateinit var fields: List<TextInputEditText>
-    private var phoneIsValid = false
+    private var phoneValidate = false
 
-    /**
-     * Fonction permettant de définir une vue à attacher à un fragment
-     */
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-//        val view = inflater.inflate(R.layout.add_neighbor, container, false)
-//        binding = DataBindingUtil.inflate(inflater, R.layout.add_neighbor, container, false)
-//        binding.lifecycleOwner = this
-
         binding = DataBindingUtil.inflate(inflater, R.layout.add_neighbor, container, false)
         with(binding) {
             fields = listOf(name, avatar, address, tel, about, website)
         }
-        formView = binding.root
 
+        formView = binding.root
         (activity as? NavigationListener)?.updateTitle(R.string.add_neighbor_title)
-        return view
+
+        return formView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         bind()
     }
 
     private fun bind() {
+        fields.forEach { it.doAfterTextChanged { onUserInput() } }
+
         with(binding) {
-            fields.forEach { it.doAfterTextChanged { onUserInput() } }
+            avatar.doAfterFinishedEditing { checkUrl(it) }
+            tel.doAfterFinishedEditing { checkPhone(it) }
+            website.doAfterFinishedEditing { checkUrl(it) }
+            address.doAfterFinishedEditing { checkEmail(it) }
 
-//            tel.doAfterTextChanged { checkPhone(it) }
-//            avatar.doAfterTextChanged { checkUrl(it) }
-//            website.doAfterTextChanged { checkUrl(it) }
-
-            saveButton.setOnClickListener() { onSaveForm() }
+            saveButton.setOnClickListener { save() }
         }
-        println("computed !!!")
     }
 
     private fun onUserInput() {
-        enableButton()
-    }
-
-    private fun checkPhone(it: Editable?) {
-        val phone = it.toString()
-        phoneIsValid = phone.length == 10 && (phone.startsWith("06") || phone.startsWith("07"))
-//        if (!phoneIsValid) binding.tel.error("")
-    }
-
-    private fun checkUrl(it: Editable?) {
-        val url = it.toString()
-        if (URLUtil.isValidUrl(url)) {
-            //
-        }
-    }
-
-    private fun enableButton() {
         with(binding) {
-            saveButton.isEnabled = !avatar.text.isNullOrEmpty() &&
-                !name.text.isNullOrEmpty() &&
-                !tel.text.isNullOrEmpty() &&
-                phoneIsValid &&
-                !address.text.isNullOrEmpty() &&
-                !website.text.isNullOrEmpty() &&
-                !about.text.isNullOrEmpty()
-        }
-    }
-
-    fun onSaveForm() {
-        var newNeighbor: Neighbor
-        with(binding) {
-            saveButton.setOnClickListener() {
-                newNeighbor = Neighbor(
-                    0,
-                    name.text.toString(),
-                    avatar.text.toString(),
-                    address.text.toString(),
-                    tel.text.toString(),
-                    about.text.toString(),
-                    false,
-                    website.text.toString()
+            val imageValidate = avatar.isValidUrl()
+            val userCanSave = (
+                fields.all { it.isNotEmpty() } &&
+                    phoneValidate &&
+                    imageValidate &&
+                    website.isValidUrl()
                 )
+            saveButton.isEnabled = userCanSave
+        }
+    }
+
+    private fun checkPhone(input: TextInputEditText) {
+        val value = input.text ?: ""
+        phoneValidate = value.length == 10 && (value.startsWith("06") || value.startsWith("07"))
+        if (!phoneValidate) {
+            input.error = getString(R.string.error)
+        }
+        onUserInput()
+    }
+
+    private fun checkUrl(input: TextInputEditText) {
+        if (!input.isValidUrl()) {
+            input.error = getString(R.string.error)
+        }
+    }
+
+    private fun checkEmail(input: TextInputEditText) {
+        if (!input.isValidEmail()) {
+            input.error = getString(R.string.error)
+        }
+    }
+
+    /**
+     * Extension pour vérifier si le champ est correct
+     */
+    private fun TextInputEditText.isNotEmpty(): Boolean = text?.isNotEmpty() ?: false
+
+    /**
+     * Extension pour vérifier si le champ contient bien une url valide
+     */
+    private fun TextInputEditText.isValidUrl(): Boolean = URLUtil.isValidUrl(text.toString())
+
+    /**
+     * Extension pour vérifier si le champ contient bien une url valide
+     */
+    private fun TextInputEditText.isValidEmail(): Boolean = android.util.Patterns.EMAIL_ADDRESS.matcher(text.toString()).matches()
+
+    /**
+     * Extension pour bind un listener à la fin de l'édition d'un champ
+     */
+    private fun TextInputEditText.doAfterFinishedEditing(callback: (TextInputEditText) -> Unit) {
+        setOnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                callback.invoke(v as TextInputEditText)
             }
         }
-//        return newNeighbor
+    }
+
+    private fun save() {
+        val lastNeighborId = DI.repository.getNeighbors().value?.last()?.id ?: 0
+        val id = lastNeighborId + 1
+        with(binding) {
+            val newNeighbor = Neighbor(
+                id = id,
+                name = name.text.toString(),
+                avatarUrl = avatar.text.toString(),
+                address = address.text.toString(),
+                phoneNumber = tel.text.toString(),
+                aboutMe = about.text.toString(),
+                favorite = false,
+                webSite = website.text.toString()
+            )
+            DI.repository.createNeighbor(newNeighbor)
+        }
+        (activity as? NavigationListener)?.showFragment(ListNeighborsFragment())
     }
 }

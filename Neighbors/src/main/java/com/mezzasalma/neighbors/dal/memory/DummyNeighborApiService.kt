@@ -22,7 +22,9 @@ class DummyNeighborApiService : NeighborApiService {
     }
 
     override fun createneighbor(neighbor: Neighbor) {
+//        neighbor.id = DUMMY_NeighborS.last().id + 1
         DUMMY_NeighborS.add(neighbor)
+        _neighbors.value = DUMMY_NeighborS
     }
 
     override fun updateFavoriteStatus(neighbor: Neighbor) {
